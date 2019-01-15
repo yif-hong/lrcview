@@ -55,10 +55,12 @@ public class LrcView extends View {
     private String mDefaultLabel;
     private float mLrcPadding;
     private OnPlayClickListener mOnPlayClickListener;
-    private ValueAnimator mAnimator;
+    private ValueAnimator scrollAnimator;
     private GestureDetector mGestureDetector;
     private Scroller mScroller;
     private float mOffset;
+    private float currentLrcTextSize;
+    private float normalLrcTextSize;
     private int mCurrentLine;
     private Object mFlag;
     private boolean isShowTimeline;
@@ -93,7 +95,8 @@ public class LrcView extends View {
 
     private void init(AttributeSet attrs) {
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.LrcView);
-        float lrcTextSize = ta.getDimension(R.styleable.LrcView_lrcTextSize, getResources().getDimension(R.dimen.lrc_text_size));
+        currentLrcTextSize = ta.getDimension(R.styleable.LrcView_currentLrcTextSize, getResources().getDimension(R.dimen.lrc_text_size));
+        normalLrcTextSize = ta.getDimension(R.styleable.LrcView_normalLrcTextSize,getResources().getDimension(R.dimen.lrc_text_size));
         mDividerHeight = ta.getDimension(R.styleable.LrcView_lrcDividerHeight, getResources().getDimension(R.dimen.lrc_divider_height));
         int defDuration = getResources().getInteger(R.integer.lrc_animation_duration);
         mAnimationDuration = ta.getInt(R.styleable.LrcView_lrcAnimationDuration, defDuration);
@@ -118,7 +121,7 @@ public class LrcView extends View {
         mTimeTextWidth = (int) getResources().getDimension(R.dimen.lrc_time_width);
 
         mLrcPaint.setAntiAlias(true);
-        mLrcPaint.setTextSize(lrcTextSize);
+        mLrcPaint.setTextSize(normalLrcTextSize);
         mLrcPaint.setTextAlign(Paint.Align.LEFT);
         mTimePaint.setAntiAlias(true);
         mTimePaint.setTextSize(timeTextSize);
@@ -346,7 +349,7 @@ public class LrcView extends View {
 
         // 无歌词文件
         if (!hasLrc()) {
-            mLrcPaint.setColor(mCurrentTextColor);
+            mLrcPaint.setColor(mNormalTextColor);
             @SuppressLint("DrawAllocation") StaticLayout staticLayout = new StaticLayout(mDefaultLabel, mLrcPaint, (int) getLrcWidth(), Layout.Alignment.ALIGN_CENTER, 1f, 0f,
                     false);
             drawText(canvas, staticLayout, centerY);
@@ -372,10 +375,12 @@ public class LrcView extends View {
 
         float y = 0;
         for (int i = 0; i < mLrcEntryList.size(); i++) {
+            mLrcPaint.setTextSize(normalLrcTextSize);
             if (i > 0) {
                 y += (mLrcEntryList.get(i - 1).getHeight() + mLrcEntryList.get(i).getHeight()) / 2 + mDividerHeight;
             }
             if (i == mCurrentLine) {
+                mLrcPaint.setTextSize(currentLrcTextSize);
                 mLrcPaint.setColor(mCurrentTextColor);
             } else if (isShowTimeline && i == centerLine) {
                 mLrcPaint.setColor(mTimelineTextColor);
@@ -520,7 +525,7 @@ public class LrcView extends View {
     }
 
     private void reset() {
-        endAnimation();
+        endScrollAnimation();
         mScroller.forceFinished(true);
         isShowTimeline = false;
         isTouching = false;
@@ -548,24 +553,24 @@ public class LrcView extends View {
 
     private void scrollTo(int line, long duration) {
         float offset = getOffset(line);
-        endAnimation();
+        endScrollAnimation();
 
-        mAnimator = ValueAnimator.ofFloat(mOffset, offset);
-        mAnimator.setDuration(duration);
-        mAnimator.setInterpolator(new LinearInterpolator());
-        mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        scrollAnimator = ValueAnimator.ofFloat(mOffset, offset);
+        scrollAnimator.setDuration(duration);
+        scrollAnimator.setInterpolator(new LinearInterpolator());
+        scrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 mOffset = (float) animation.getAnimatedValue();
                 invalidate();
             }
         });
-        mAnimator.start();
+        scrollAnimator.start();
     }
 
-    private void endAnimation() {
-        if (mAnimator != null && mAnimator.isRunning()) {
-            mAnimator.end();
+    private void endScrollAnimation() {
+        if (scrollAnimator != null && scrollAnimator.isRunning()) {
+            scrollAnimator.end();
         }
     }
 

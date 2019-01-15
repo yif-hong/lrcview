@@ -1,5 +1,6 @@
 package me.wcy.lrcviewsample;
 
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -17,9 +18,21 @@ import me.wcy.lrcview.LrcView;
 public class MainActivity extends AppCompatActivity {
     private LrcView lrcView;
     private SeekBar seekBar;
-    private Button btnPlayPause;
+    private Button btnPlayPause, animationDemoBtn;
     private MediaPlayer mediaPlayer = new MediaPlayer();
     private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mediaPlayer.isPlaying()) {
+                long time = mediaPlayer.getCurrentPosition();
+                lrcView.updateTime(time);
+                seekBar.setProgress((int) time);
+            }
+
+            handler.postDelayed(this, 300);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,11 +42,13 @@ public class MainActivity extends AppCompatActivity {
         lrcView = (LrcView) findViewById(R.id.lrc_view);
         seekBar = (SeekBar) findViewById(R.id.progress_bar);
         btnPlayPause = (Button) findViewById(R.id.btn_play_pause);
+        animationDemoBtn = findViewById(R.id.animation_demo);
 
         try {
             mediaPlayer.reset();
             AssetFileDescriptor fileDescriptor = getAssets().openFd("chengdu.mp3");
-            mediaPlayer.setDataSource(fileDescriptor.getFileDescriptor(), fileDescriptor.getStartOffset(), fileDescriptor.getLength());
+            mediaPlayer.setDataSource(fileDescriptor.getFileDescriptor(), fileDescriptor
+                    .getStartOffset(), fileDescriptor.getLength());
             mediaPlayer.prepareAsync();
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
@@ -80,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        animationDemoBtn.setOnClickListener((v) -> {
+            startActivity(new Intent(MainActivity.this, AnimationDemoActivity.class));
+        });
+
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -111,19 +130,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return lrcText;
     }
-
-    private Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            if (mediaPlayer.isPlaying()) {
-                long time = mediaPlayer.getCurrentPosition();
-                lrcView.updateTime(time);
-                seekBar.setProgress((int) time);
-            }
-
-            handler.postDelayed(this, 300);
-        }
-    };
 
     @Override
     protected void onDestroy() {

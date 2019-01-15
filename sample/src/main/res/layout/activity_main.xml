@@ -18,14 +18,15 @@
         app:lrcAnimationDuration="1000"
         app:lrcCurrentTextColor="#3F51B5"
         app:lrcDividerHeight="24dp"
-        app:lrcLabel="找不到歌词(@_@)"
+        app:lrcLabel="找不到歌词"
         app:lrcNormalTextColor="#BDBDBD"
         app:lrcPadding="40dp"
-        app:lrcTextSize="16sp"
+        app:currentLrcTextSize="24sp"
+        app:normalLrcTextSize="16sp"
         app:lrcTimeTextColor="#BDBDBD"
         app:lrcTimelineColor="#80BDBDBD"
         app:lrcTimelineTextColor="#9FA8DA"
-        app:lrcTextGravity="left"/>
+        app:lrcTextGravity="center"/>
 
     <SeekBar
         android:id="@+id/progress_bar"
@@ -40,4 +41,12 @@
         android:layout_gravity="center"
         android:layout_marginTop="@dimen/activity_vertical_margin"
         android:text="播放/暂停" />
+
+    <Button
+        android:id="@+id/animation_demo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:text="Animation demo" />
 </LinearLayout>
